@@ -1,50 +1,50 @@
-# Welcome to your Expo app 👋
+# CheapThrillTrips-App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Frontend aplikacji mobilnej CheapThrillTrips, zbudowany z wykorzystaniem [Expo](https://expo.dev) i [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## 🛠️ Jak uruchomić aplikację?
 
-1. Install dependencies
+1. Zainstaluj zależności:
 
    ```bash
    npm install
-   ```
+Uruchom projekt:
 
-2. Start the app
+bash
+Kopiuj
+Edytuj
+npx expo start
+W terminalu pojawią się opcje otwarcia aplikacji:
 
-   ```bash
-   npx expo start
-   ```
+w emulatorze Androida lub symulatorze iOS,
 
-In the output, you'll find options to open the app in a
+w Expo Go,
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+lub w wersji development build.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+📂 Struktura projektu
+Projekt wykorzystuje file-based routing w katalogu app.
 
-## Get a fresh project
+🧪 Storybook
+Uruchom podgląd komponentów w Storybooku:
 
-When you're ready, run:
+bash
+Kopiuj
+Edytuj
+npm run storybook
+🔁 Reset projektu
+Aby zresetować starter i rozpocząć od zera:
 
-```bash
+bash
+Kopiuj
+Edytuj
 npm run reset-project
-```
+📚 Dokumentacja i wsparcie
+Expo Docs
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Learn Expo Tutorial
 
-## Learn more
+Discord (Expo)
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+👨‍👩‍👧‍👦 Zespół
+Ten projekt jest rozwijany w ramach aplikacji weekendowych wyjazdów budżetowych — CheapThrillTrips.
