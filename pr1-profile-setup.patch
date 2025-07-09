@@ -1,0 +1,59 @@
+import Toast from 'react-native-toast-message';
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { formatPhoneNumber } from '@/lib/utils/formatPhone';
+
+export default function ProfileSetup() {
+  const { mode, colors, toggleMode } = useAppTheme(); 
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (phone && /[^0-9+]/.test(phone)) {
+      newErrors.phone = 'Tylko cyfry i znak + są dozwolone';
+    } else if (phone && !phoneRegex.test(phone)) {
+      newErrors.phone = 'Nieprawidłowy numer telefonu';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePhoneChange = (text: string) => {
+    if (/[^0-9+]/.test(text)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Dozwolone tylko cyfry i +',
+      });
+    }
+    const cleaned = text.replace(/[^\d+]/g, '');
+    const formatted = formatPhoneNumber(cleaned);
+    setPhone(formatted);
+  };
+
+  const validateAndSubmit = () => {
+    if (!validate()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Uzupełnij wymagane pola',
+      });
+      return;
+    }
+    // submit logic here
+  };
+
+  return (
+    <View>
+      <TextInput
+        value={phone}
+        onChangeText={handlePhoneChange}
+        placeholder="+48 600 100 200"
+        style={styles.input}
+        keyboardType="phone-pad"
+        placeholderTextColor={colors.placeholder}
+      />
+    </View>
+  );
+}

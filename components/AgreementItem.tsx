@@ -1,60 +1,34 @@
-// components/AgreementItem.tsx
-import { useAppTheme } from '@/context/ThemeContext';
+// components/CustomCheckbox.tsx
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import CustomCheckbox from './CustomCheckbox';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 
-interface AgreementItemProps {
-  agreementText: string;
+interface CustomCheckboxProps {
   checked: boolean;
-  onToggle: () => void;
-  onToggleShowMore: () => void;
-  showMore: boolean;
+  onPress: () => void;
 }
 
-export default function AgreementItem({
-  agreementText,
-  checked,
-  onToggle,
-  onToggleShowMore,
-  showMore,
-}: AgreementItemProps) {
-  const { colors } = useAppTheme();
-
-  const shortText = agreementText.length > 70 ? agreementText.slice(0, 70) + '...' : agreementText;
-
+export default function CustomCheckbox({ checked, onPress }: CustomCheckboxProps) {
   return (
-    <View style={styles.container}>
-      <CustomCheckbox checked={checked} onPress={onToggle} />
-      <View style={{ flex: 1 }}>
-        <Text style={[styles.text, { color: colors.text }]}>
-          {showMore ? agreementText : shortText}
-        </Text>
-        {agreementText.length > 70 && (
-          <TouchableOpacity onPress={onToggleShowMore}>
-            <Text style={[styles.showMore, { color: '#FF6B00' }]}>
-              {showMore ? 'Zwiń' : 'Pokaż więcej'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+    <TouchableOpacity onPress={onPress} style={styles.checkbox}>
+      {checked && <View style={styles.innerCheckbox} />}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  text: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  showMore: {
-    marginTop: 4,
-    fontSize: 13,
-    fontWeight: '600',
+  innerCheckbox: {
+    width: 12,
+    height: 12,
+    backgroundColor: '#FF6B00',
+    borderRadius: 2,
   },
 });

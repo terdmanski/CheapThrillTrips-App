@@ -1,37 +1,24 @@
-// components/CustomCheckbox.tsx
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
-interface CustomCheckboxProps {
+interface AgreementItemProps {
+  agreementText?: string;
   checked: boolean;
-  onPress: () => void;
+  onToggle: () => void;
+  showMore: boolean;
+  onToggleShowMore: () => void;
 }
 
-export default function CustomCheckbox({ checked, onPress }: CustomCheckboxProps) {
+export default function AgreementItem({ agreementText = '', checked, onToggle, showMore, onToggleShowMore }: AgreementItemProps) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.wrapper}>
-      <View style={[styles.box, checked && styles.checked]}>
-        {checked && <Ionicons name="checkmark" size={14} color="white" />}
-      </View>
-    </TouchableOpacity>
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <TouchableOpacity onPress={onToggle} style={{ width: 24, height: 24, borderWidth: 1, borderColor: 'black', marginRight: 12, justifyContent: 'center', alignItems: 'center' }}>
+        {checked && <View style={{ width: 16, height: 16, backgroundColor: 'black' }} />}
+      </TouchableOpacity>
+      <Text>{agreementText}</Text>
+      <Text style={{ color: 'blue', marginLeft: 12 }} onPress={onToggleShowMore}>
+        {showMore ? 'Zwiń' : 'Pokaż więcej'}
+      </Text>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    marginRight: 12,
-  },
-  box: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: '#FF6B00',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checked: {
-    backgroundColor: '#FF6B00',
-  },
-});
