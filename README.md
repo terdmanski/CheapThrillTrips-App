@@ -1,50 +1,26 @@
-# CheapThrillTrips-App
+# CheapThrillTrips App
 
-Frontend aplikacji mobilnej CheapThrillTrips, zbudowany z wykorzystaniem [Expo](https://expo.dev) i [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![Logo](./assets/logo.png)
 
-## 🛠️ Jak uruchomić aplikację?
+Aplikacja mobilna dla miłośników krótkich, budżetowych wypadów w Polsce i Europie. Tworzona w React Native z myślą o rodzinach i podróżnikach solo.
 
-1. Zainstaluj zależności:
+## 📱 Screenshoty
 
-   ```bash
-   npm install
-Uruchom projekt:
+| Ekran logowania | Formularz profilu | Dashboard |
+|----------------|------------------|-----------|
+| ![](./assets/screenshots/login.png) | ![](./assets/screenshots/profile.png) | ![](./assets/screenshots/dashboard.png) |
 
-bash
-Kopiuj
-Edytuj
+## 🔧 Stack technologiczny
+
+- React Native + Expo
+- TypeScript
+- Clerk (autoryzacja)
+- Zustand + SecureStore
+- Storybook (dla UI)
+- Git + GitHub (CI/CD wkrótce)
+
+## 🚀 Uruchomienie
+
+```bash
+npm install
 npx expo start
-W terminalu pojawią się opcje otwarcia aplikacji:
-
-w emulatorze Androida lub symulatorze iOS,
-
-w Expo Go,
-
-lub w wersji development build.
-
-📂 Struktura projektu
-Projekt wykorzystuje file-based routing w katalogu app.
-
-🧪 Storybook
-Uruchom podgląd komponentów w Storybooku:
-
-bash
-Kopiuj
-Edytuj
-npm run storybook
-🔁 Reset projektu
-Aby zresetować starter i rozpocząć od zera:
-
-bash
-Kopiuj
-Edytuj
-npm run reset-project
-📚 Dokumentacja i wsparcie
-Expo Docs
-
-Learn Expo Tutorial
-
-Discord (Expo)
-
-👨‍👩‍👧‍👦 Zespół
-Ten projekt jest rozwijany w ramach aplikacji weekendowych wyjazdów budżetowych — CheapThrillTrips.
