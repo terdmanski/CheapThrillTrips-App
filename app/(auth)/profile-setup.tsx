@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 // AgreementItem component as it was before CustomCheckbox refactor
 interface AgreementItemProps {
@@ -37,7 +38,15 @@ const AgreementItem: React.FC<AgreementItemProps> = ({
       {checked && <Ionicons name="checkmark" size={20} color="#FF6B00" />}
     </TouchableOpacity>
     <View style={{ flex: 1 }}>
-      <Text style={styles.agreementText}>{text}</Text>
+      {/* Show orange star only if text ends with ' *' */}
+      {/\s\*$/.test(text) ? (
+        <Text style={styles.agreementText}>
+          {text.replace(/\s\*$/, '')}
+          <Text style={{ color: '#FF6B00' }}> *</Text>
+        </Text>
+      ) : (
+        <Text style={styles.agreementText}>{text}</Text>
+      )}
       {moreText && (
         <>
           <TouchableOpacity onPress={onToggleShowMore}>
@@ -64,6 +73,22 @@ const ProfileSetup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  // Birthdate state
+  const [birthdate, setBirthdate] = useState<Date | null>(null);
+  const [birthdateError, setBirthdateError] = useState('');
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+
+  // Telefon state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  // Helper to format phone number
+  const formatPhoneNumber = (input: string) => {
+    const cleaned = input.replace(/[^\d+]/g, '');
+    if (!cleaned.startsWith('+')) return '+';
+    const digitsOnly = cleaned.slice(1).replace(/\D/g, '');
+    const groups = digitsOnly.match(/.{1,3}/g) || [];
+    return '+' + groups.join(' ');
+  };
 
   // Validation states
   const [firstNameError, setFirstNameError] = useState('');
@@ -108,26 +133,30 @@ const ProfileSetup: React.FC = () => {
     setLastNameError('');
     return true;
   };
-  const validateEmail = () => {
-    if (!email.trim()) {
-      setEmailError('Email jest wymagany.');
-      return false;
-    }
-    // Simple email regex
-    const re = /\S+@\S+\.\S+/;
-    if (!re.test(email)) {
-      setEmailError('Nieprawidłowy adres email.');
-      return false;
-    }
-    setEmailError('');
-    return true;
-  };
+  // Email validation removed (email is not required nor validated)
   const validateBio = () => {
     if (bio.length > 160) {
       setBioError('Bio nie może przekraczać 160 znaków.');
       return false;
     }
     setBioError('');
+    return true;
+  };
+
+  // Birthdate validation
+  const showDatePicker = () => setDatePickerVisible(true);
+  const hideDatePicker = () => setDatePickerVisible(false);
+  const handleConfirmDate = (date: Date) => {
+    setBirthdate(date);
+    setBirthdateError('');
+    hideDatePicker();
+  };
+  const validateBirthdate = () => {
+    if (!birthdate) {
+      setBirthdateError('Data urodzenia jest wymagana.');
+      return false;
+    }
+    setBirthdateError('');
     return true;
   };
 
@@ -149,8 +178,8 @@ const ProfileSetup: React.FC = () => {
     setFormError('');
     const isFirstNameValid = validateFirstName();
     const isLastNameValid = validateLastName();
-    const isEmailValid = validateEmail();
     const isBioValid = validateBio();
+    const isBirthdateValid = validateBirthdate();
     if (!isFirstNameValid) {
       scrollToInput(firstNameRef);
       return;
@@ -159,12 +188,11 @@ const ProfileSetup: React.FC = () => {
       scrollToInput(lastNameRef);
       return;
     }
-    if (!isEmailValid) {
-      scrollToInput(emailRef);
-      return;
-    }
     if (!isBioValid) {
       scrollToInput(bioRef);
+      return;
+    }
+    if (!isBirthdateValid) {
       return;
     }
     if (!agreedTerms || !agreedPrivacy) {
@@ -220,7 +248,15 @@ const ProfileSetup: React.FC = () => {
         contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.headerRow}>
+        <View style={[
+          styles.headerRow,
+          {
+            backgroundColor: theme.background,
+            paddingHorizontal: 24,
+            paddingTop: 44,
+            paddingBottom: 16,
+          }
+        ]}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Ustaw swój profil</Text>
           <View style={styles.themeSwitchRow}>
             <Ionicons name={darkMode ? 'moon' : 'sunny'} size={20} color={theme.text} />
@@ -233,191 +269,258 @@ const ProfileSetup: React.FC = () => {
             />
           </View>
         </View>
-        {/* Profile Image */}
-        <View style={styles.profileImageContainer}>
-          <Image
-            source={{
-              uri: profileImage || defaultProfileImage,
-            }}
-            style={styles.profileImage}
+        <View style={{ paddingTop: 4 }}>
+          {/* Profile Image */}
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={{
+                uri: profileImage || defaultProfileImage,
+              }}
+              style={styles.profileImage}
+            />
+            <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+              <MaterialIcons name="edit" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          {/* Form fields */}
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Imię *</Text>
+            <TextInput
+              ref={firstNameRef}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: firstNameError ? theme.error : theme.border,
+                  color: theme.text,
+                },
+              ]}
+              placeholder="Wprowadź imię"
+              placeholderTextColor={theme.placeholder}
+              value={firstName}
+              onChangeText={(text) => setFirstName(text.replace(/[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ ]/g, ''))}
+              onBlur={validateFirstName}
+              autoCapitalize="words"
+              returnKeyType="next"
+              onSubmitEditing={() => lastNameRef.current?.focus()}
+            />
+            {firstNameError ? (
+              <Text style={[styles.errorText, { color: theme.error }]}>{firstNameError}</Text>
+            ) : null}
+          </View>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Nazwisko *</Text>
+            <TextInput
+              ref={lastNameRef}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: lastNameError ? theme.error : theme.border,
+                  color: theme.text,
+                },
+              ]}
+              placeholder="Wprowadź nazwisko"
+              placeholderTextColor={theme.placeholder}
+              value={lastName}
+              onChangeText={(text) => setLastName(text.replace(/[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ \-]/g, ''))}
+              onBlur={validateLastName}
+              autoCapitalize="words"
+              returnKeyType="next"
+              onSubmitEditing={() => emailRef.current?.focus()}
+            />
+            {lastNameError ? (
+              <Text style={[styles.errorText, { color: theme.error }]}>{lastNameError}</Text>
+            ) : null}
+          </View>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>E-mail *</Text>
+            {/* Wartość email pochodzi z Clerk i nie jest edytowalna */}
+            <TextInput
+              ref={emailRef}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.border,
+                  color: theme.text,
+                },
+              ]}
+              value={email}
+              editable={false}
+              selectTextOnFocus={false}
+            />
+          </View>
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Data urodzenia *</Text>
+            <TouchableOpacity onPress={showDatePicker}>
+              <View
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.inputBg,
+                    borderColor: birthdateError ? theme.error : theme.border,
+                    justifyContent: 'center',
+                  },
+                ]}
+              >
+                <Text style={{ color: birthdate ? theme.text : theme.placeholder }}>
+                  {birthdate ? birthdate.toLocaleDateString('pl-PL') : 'DD.MM.RRRR'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            {birthdateError ? (
+              <Text style={[styles.errorText, { color: theme.error }]}>{birthdateError}</Text>
+            ) : null}
+          </View>
+
+          {/* Telefon field */}
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Telefon</Text>
+            <View
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.border,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                },
+              ]}
+            >
+              <Text style={{ color: theme.text }}>+</Text>
+              <TextInput
+                style={{ flex: 1, color: theme.text }}
+                keyboardType="number-pad"
+                value={phoneNumber}
+                onChangeText={(text) => {
+                  const digits = text.replace(/\D/g, '').slice(0, 11);
+                  const parts = digits.match(/^(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,3})$/);
+                  if (parts) {
+                    const [, p1, p2, p3, p4] = parts;
+                    const formatted =
+                      (p1 ? p1 : '') +
+                      (p2 ? ' ' + p2 : '') +
+                      (p3 ? ' ' + p3 : '') +
+                      (p4 ? ' ' + p4 : '');
+                    setPhoneNumber(formatted.trim());
+                  }
+                }}
+                placeholder="99 222 999 777"
+                placeholderTextColor={theme.placeholder}
+                maxLength={14}
+              />
+            </View>
+          </View>
+
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirmDate}
+            onCancel={hideDatePicker}
+            maximumDate={new Date()}
+            confirmTextIOS="Zapisz datę"
+            cancelTextIOS="Anuluj"
+            locale="pl-PL"
           />
-          <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
-            <MaterialIcons name="edit" size={20} color="#fff" />
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: theme.text }]}>Bio</Text>
+            <TextInput
+              ref={bioRef}
+              style={[
+                styles.input,
+                styles.bioInput,
+                {
+                  backgroundColor: theme.inputBg,
+                  borderColor: bioError ? theme.error : theme.border,
+                  color: theme.text,
+                },
+              ]}
+              placeholder="Opowiedz coś o sobie (max 160 znaków)"
+              placeholderTextColor={theme.placeholder}
+              value={bio}
+              onChangeText={setBio}
+              onBlur={validateBio}
+              multiline
+              maxLength={160}
+            />
+            <View style={styles.bioCountRow}>
+              <Text style={{ color: theme.placeholder, fontSize: 13 }}>{bio.length}/160</Text>
+            </View>
+            {bioError ? (
+              <Text style={[styles.errorText, { color: theme.error }]}>{bioError}</Text>
+            ) : null}
+          </View>
+          {/* Agreements */}
+          <View style={[styles.formGroup, { marginBottom: 6 }]}>
+            <Text style={[styles.label, { color: theme.text }]}>Zgody użytkownika *</Text>
+          </View>
+          <View style={[styles.agreementsContainer, { backgroundColor: theme.agreementBg }]}>
+            <AgreementItem
+              checked={agreedTerms}
+              onToggle={() => setAgreedTerms((prev) => !prev)}
+              text="Akceptuję regulamin CheapThrillTrips *"
+              showMore={showTermsMore}
+              onToggleShowMore={() => setShowTermsMore((prev) => !prev)}
+              moreText="Pełen regulamin znajdziesz na naszej stronie internetowej. Akceptując regulamin, zgadzasz się na zasady korzystania z aplikacji."
+            />
+            <AgreementItem
+              checked={agreedPrivacy}
+              onToggle={() => setAgreedPrivacy((prev) => !prev)}
+              text="Akceptuję politykę prywatności *"
+              showMore={showPrivacyMore}
+              onToggleShowMore={() => setShowPrivacyMore((prev) => !prev)}
+              moreText="Twoje dane są przetwarzane zgodnie z naszą polityką prywatności. Dbamy o bezpieczeństwo Twoich informacji."
+            />
+            <AgreementItem
+              checked={agreedMarketing}
+              onToggle={() => setAgreedMarketing((prev) => !prev)}
+              text="Chcę otrzymywać informacje marketingowe"
+              showMore={showMarketingMore}
+              onToggleShowMore={() => setShowMarketingMore((prev) => !prev)}
+              moreText="Zaznaczając tę opcję, wyrażasz zgodę na otrzymywanie informacji o promocjach i nowościach."
+            />
+          </View>
+          {/* Form error */}
+          {formError ? (
+            <Text style={[styles.formError, { color: theme.error }]}>{formError}</Text>
+          ) : null}
+          {/* Submit button */}
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              {
+                backgroundColor: theme.buttonBg,
+                opacity:
+                  isSubmitting ||
+                  !firstName ||
+                  !lastName ||
+                  !agreedTerms ||
+                  !agreedPrivacy
+                    ? 0.6
+                    : 1,
+              },
+            ]}
+            onPress={handleSubmit}
+            disabled={
+              isSubmitting ||
+              !firstName ||
+              !lastName ||
+              !agreedTerms ||
+              !agreedPrivacy
+            }
+          >
+            {isSubmitting ? (
+              <Text style={[styles.submitButtonText, { color: theme.buttonText }]}>
+                Przetwarzanie...
+              </Text>
+            ) : (
+              <Text style={[styles.submitButtonText, { color: theme.buttonText }]}>
+                Zatwierdź profil
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
-        {/* Form fields */}
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: theme.text }]}>Imię</Text>
-          <TextInput
-            ref={firstNameRef}
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.inputBg,
-                borderColor: firstNameError ? theme.error : theme.border,
-                color: theme.text,
-              },
-            ]}
-            placeholder="Wprowadź imię"
-            placeholderTextColor={theme.placeholder}
-            value={firstName}
-            onChangeText={setFirstName}
-            onBlur={validateFirstName}
-            autoCapitalize="words"
-            returnKeyType="next"
-            onSubmitEditing={() => lastNameRef.current?.focus()}
-          />
-          {firstNameError ? (
-            <Text style={[styles.errorText, { color: theme.error }]}>{firstNameError}</Text>
-          ) : null}
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: theme.text }]}>Nazwisko</Text>
-          <TextInput
-            ref={lastNameRef}
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.inputBg,
-                borderColor: lastNameError ? theme.error : theme.border,
-                color: theme.text,
-              },
-            ]}
-            placeholder="Wprowadź nazwisko"
-            placeholderTextColor={theme.placeholder}
-            value={lastName}
-            onChangeText={setLastName}
-            onBlur={validateLastName}
-            autoCapitalize="words"
-            returnKeyType="next"
-            onSubmitEditing={() => emailRef.current?.focus()}
-          />
-          {lastNameError ? (
-            <Text style={[styles.errorText, { color: theme.error }]}>{lastNameError}</Text>
-          ) : null}
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: theme.text }]}>Email</Text>
-          <TextInput
-            ref={emailRef}
-            style={[
-              styles.input,
-              {
-                backgroundColor: theme.inputBg,
-                borderColor: emailError ? theme.error : theme.border,
-                color: theme.text,
-              },
-            ]}
-            placeholder="Wprowadź email"
-            placeholderTextColor={theme.placeholder}
-            value={email}
-            onChangeText={setEmail}
-            onBlur={validateEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            returnKeyType="next"
-            onSubmitEditing={() => bioRef.current?.focus()}
-          />
-          {emailError ? (
-            <Text style={[styles.errorText, { color: theme.error }]}>{emailError}</Text>
-          ) : null}
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={[styles.label, { color: theme.text }]}>Bio</Text>
-          <TextInput
-            ref={bioRef}
-            style={[
-              styles.input,
-              styles.bioInput,
-              {
-                backgroundColor: theme.inputBg,
-                borderColor: bioError ? theme.error : theme.border,
-                color: theme.text,
-              },
-            ]}
-            placeholder="Opowiedz coś o sobie (max 160 znaków)"
-            placeholderTextColor={theme.placeholder}
-            value={bio}
-            onChangeText={setBio}
-            onBlur={validateBio}
-            multiline
-            maxLength={160}
-          />
-          <View style={styles.bioCountRow}>
-            <Text style={{ color: theme.placeholder, fontSize: 13 }}>{bio.length}/160</Text>
-          </View>
-          {bioError ? (
-            <Text style={[styles.errorText, { color: theme.error }]}>{bioError}</Text>
-          ) : null}
-        </View>
-        {/* Agreements */}
-        <View style={[styles.agreementsContainer, { backgroundColor: theme.agreementBg }]}>
-          <AgreementItem
-            checked={agreedTerms}
-            onToggle={() => setAgreedTerms((prev) => !prev)}
-            text="Akceptuję regulamin CheapThrillTrips"
-            showMore={showTermsMore}
-            onToggleShowMore={() => setShowTermsMore((prev) => !prev)}
-            moreText="Pełen regulamin znajdziesz na naszej stronie internetowej. Akceptując regulamin, zgadzasz się na zasady korzystania z aplikacji."
-          />
-          <AgreementItem
-            checked={agreedPrivacy}
-            onToggle={() => setAgreedPrivacy((prev) => !prev)}
-            text="Akceptuję politykę prywatności"
-            showMore={showPrivacyMore}
-            onToggleShowMore={() => setShowPrivacyMore((prev) => !prev)}
-            moreText="Twoje dane są przetwarzane zgodnie z naszą polityką prywatności. Dbamy o bezpieczeństwo Twoich informacji."
-          />
-          <AgreementItem
-            checked={agreedMarketing}
-            onToggle={() => setAgreedMarketing((prev) => !prev)}
-            text="Chcę otrzymywać informacje marketingowe"
-            showMore={showMarketingMore}
-            onToggleShowMore={() => setShowMarketingMore((prev) => !prev)}
-            moreText="Zaznaczając tę opcję, wyrażasz zgodę na otrzymywanie informacji o promocjach i nowościach."
-          />
-        </View>
-        {/* Form error */}
-        {formError ? (
-          <Text style={[styles.formError, { color: theme.error }]}>{formError}</Text>
-        ) : null}
-        {/* Submit button */}
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            {
-              backgroundColor: theme.buttonBg,
-              opacity:
-                isSubmitting ||
-                !firstName ||
-                !lastName ||
-                !email ||
-                !agreedTerms ||
-                !agreedPrivacy
-                  ? 0.6
-                  : 1,
-            },
-          ]}
-          onPress={handleSubmit}
-          disabled={
-            isSubmitting ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !agreedTerms ||
-            !agreedPrivacy
-          }
-        >
-          {isSubmitting ? (
-            <Text style={[styles.submitButtonText, { color: theme.buttonText }]}>
-              Przetwarzanie...
-            </Text>
-          ) : (
-            <Text style={[styles.submitButtonText, { color: theme.buttonText }]}>
-              Zatwierdź profil
-            </Text>
-          )}
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -425,7 +528,8 @@ const ProfileSetup: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    // paddingTop: 44, // removed, now handled in contentContainerStyle
+    paddingHorizontal: 24,
     paddingBottom: 48,
     minHeight: '100%',
   },
@@ -434,6 +538,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
+    // Usunięto cień i sticky style
   },
   headerTitle: {
     fontSize: 24,
