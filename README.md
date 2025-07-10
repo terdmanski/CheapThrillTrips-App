@@ -1,26 +1,60 @@
-# CheapThrillTrips App
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { DatePickerModal } from 'react-native-paper-dates';
 
-![Logo](./assets/logo.png)
+const ProfileSetup = () => {
+  const [birthdate, setBirthdate] = useState<Date | null>(null);
+  const [birthdateError, setBirthdateError] = useState('');
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
-Aplikacja mobilna dla miłośników krótkich, budżetowych wypadów w Polsce i Europie. Tworzona w React Native z myślą o rodzinach i podróżnikach solo.
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity onPress={() => setDatePickerVisible(true)} style={styles.datePickerButton}>
+        <Text style={styles.datePickerButtonText}>
+          {birthdate ? birthdate.toLocaleDateString('pl-PL') : 'Wybierz datę urodzenia'}
+        </Text>
+      </TouchableOpacity>
 
-## 📱 Screenshoty
+      <DatePickerModal
+        locale="pl"
+        mode="single"
+        visible={datePickerVisible}
+        onDismiss={() => setDatePickerVisible(false)}
+        date={birthdate || undefined}
+        onConfirm={({ date }) => {
+          setDatePickerVisible(false);
+          setBirthdate(date);
+          setBirthdateError('');
+        }}
+        saveLabel="Zapisz datę"
+        label="Data urodzenia"
+        saveLabelDisabled={false}
+        presentationStyle="pageSheet"
+        theme={{ colors: { primary: '#FF6B00' } }}
+      />
 
-| Ekran logowania | Formularz profilu | Dashboard |
-|----------------|------------------|-----------|
-| ![](./assets/screenshots/login.png) | ![](./assets/screenshots/profile.png) | ![](./assets/screenshots/dashboard.png) |
+      {birthdateError ? <Text style={styles.errorText}>{birthdateError}</Text> : null}
+    </View>
+  );
+};
 
-## 🔧 Stack technologiczny
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+  datePickerButton: {
+    padding: 12,
+    backgroundColor: '#eee',
+    borderRadius: 8,
+  },
+  datePickerButtonText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  errorText: {
+    marginTop: 8,
+    color: 'red',
+  },
+});
 
-- React Native + Expo
-- TypeScript
-- Clerk (autoryzacja)
-- Zustand + SecureStore
-- Storybook (dla UI)
-- Git + GitHub (CI/CD wkrótce)
-
-## 🚀 Uruchomienie
-
-```bash
-npm install
-npx expo start
+export default ProfileSetup;

@@ -22,6 +22,7 @@
 # editor directories and files
 .idea
 .vscode
+*.log
 *.suo
 *.ntvs*
 *.njsproj
